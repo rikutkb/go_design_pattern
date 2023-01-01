@@ -16,7 +16,6 @@ func (gs GoodSingleton) Hello() (message string) {
 	return "hello"
 }
 func GetGoodInstance() *GoodSingleton {
-	time.Sleep(3)
 	return gInstance
 }
 
@@ -43,6 +42,7 @@ var bInstance *BadSingleton
 func init() {
 	// シングルトンのインスタンスをスレッドセーフにするため、init関数内で初期化を行う。
 	fmt.Println("GoodSingleton is initialized.")
+	time.Sleep(3)
 	gInstance = &GoodSingleton{}
 
 }
