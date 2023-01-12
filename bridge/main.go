@@ -34,19 +34,23 @@ func NewDisplay(iDisplay IDisplay) Display {
 }
 
 type CountDisplay struct {
-	Display Display
+	display Display
+}
+
+func (cd *CountDisplay) Display() {
+	cd.display.Display()
 }
 
 func NewCountDisplay(display Display) CountDisplay {
-	return CountDisplay{Display: display}
+	return CountDisplay{display: display}
 }
 
 func (cd *CountDisplay) MultiDisplay(times int) {
-	cd.Display.Open()
+	cd.display.Open()
 	for i := 0; i < times; i++ {
-		cd.Display.Print()
+		cd.display.Print()
 	}
-	cd.Display.Close()
+	cd.display.Close()
 }
 
 type StringDisplay struct {
@@ -83,7 +87,7 @@ func main() {
 	display := NewDisplay(NewStringDisplay("test", 3))
 	countDisplay := NewCountDisplay(NewDisplay(NewStringDisplay("a", 3)))
 	display.Display()
-	countDisplay.Display.Display()
+	countDisplay.Display()
 	countDisplay.MultiDisplay(5)
 
 }
