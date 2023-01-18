@@ -1,0 +1,66 @@
+package pagemaker
+
+import (
+	"bytes"
+	"fmt"
+	"os"
+)
+
+type Properties struct {
+	data map[string]string
+}
+
+func (p Properties) Get(key string) string {
+	return p.data[key]
+}
+
+type Database struct {
+}
+
+func (d Database) GetProperties(dbName string) Properties {
+	fileName := dbName + ".txt"
+	//open file here
+
+	return Properties{data: map[string]string{"a": fileName}}
+}
+
+type HtmlWriter struct {
+	writer bytes.Buffer
+}
+
+func NewHtmlWriter(writer bytes.Buffer) HtmlWriter {
+	return HtmlWriter{writer: writer}
+}
+func (hw *HtmlWriter) Write(str string) {
+	hw.writer.Write([]byte(str))
+}
+func (hw *HtmlWriter) Title(title string) {
+	hw.Write("<html>")
+	hw.Write("<head>")
+	hw.Write(fmt.Sprintf("<titile>%s</title>", title))
+	hw.Write("</head>")
+	hw.Write("<body>¥n")
+	hw.Write(fmt.Sprintf("<h1>%s</h1>", title))
+}
+func (hw *HtmlWriter) Paragraph(msg string) {
+	hw.Write(fmt.Sprintf("<p>%s</p>", msg))
+}
+
+type PageMaker struct {
+}
+
+func (pw PageMaker) MakeWelComPage(mailAddr string, fileName string) error {
+	mailDrop := Database{}.GetProperties("maildata")
+	userName := mailDrop.Get(mailAddr)
+	var fileWriter bytes.Buffer
+	writer := NewHtmlWriter(fileWriter)
+	writer.Title(fmt.Sprintf("Welcome to %s's page", userName))
+	writer.Paragraph(fmt.Sprintf("%sのページへようこそ", userName))
+	file, err := os.Create("/tmp/parctice/test.txt")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = file.WriteString(fileWriter.String())
+	return err
+}
