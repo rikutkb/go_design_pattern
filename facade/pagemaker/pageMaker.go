@@ -1,9 +1,11 @@
 package pagemaker
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Properties struct {
@@ -17,18 +19,32 @@ func (p Properties) Get(key string) string {
 type Database struct {
 }
 
-func (d Database) GetProperties(dbName string) Properties {
+func (d Database) GetProperties(dbName string) (Properties, error) {
 	fileName := dbName + ".txt"
+	f, err := os.Open(fileName)
+	if err != nil {
+		return Properties{}, err
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	properties := map[string]string{}
+	for scanner.Scan() {
+		data := strings.Split(scanner.Text(), "=")
+		if len(data) != 2 {
+			return Properties{}, fmt.Errorf("ファイル形式が異なっています。")
+		}
+		properties[data[0]] = data[1]
+	}
 	//open file here
 
-	return Properties{data: map[string]string{"a": fileName}}
+	return Properties{data: properties}, nil
 }
 
 type HtmlWriter struct {
-	writer bytes.Buffer
+	writer *bytes.Buffer
 }
 
-func NewHtmlWriter(writer bytes.Buffer) HtmlWriter {
+func NewHtmlWriter(writer *bytes.Buffer) HtmlWriter {
 	return HtmlWriter{writer: writer}
 }
 func (hw *HtmlWriter) Write(str string) {
@@ -49,14 +65,17 @@ func (hw *HtmlWriter) Paragraph(msg string) {
 type PageMaker struct {
 }
 
-func (pw PageMaker) MakeWelComPage(mailAddr string, fileName string) error {
-	mailDrop := Database{}.GetProperties("maildata")
+func (pw PageMaker) MakeWelComPage(mailAddr string) error {
+	mailDrop, err := Database{}.GetProperties("maildata")
+	if err != nil {
+		return err
+	}
 	userName := mailDrop.Get(mailAddr)
 	var fileWriter bytes.Buffer
-	writer := NewHtmlWriter(fileWriter)
+	writer := NewHtmlWriter(&fileWriter)
 	writer.Title(fmt.Sprintf("Welcome to %s's page", userName))
 	writer.Paragraph(fmt.Sprintf("%sのページへようこそ", userName))
-	file, err := os.Create("/tmp/parctice/test.txt")
+	file, err := os.Create("./result.txt")
 	if err != nil {
 		return err
 	}
