@@ -9,27 +9,33 @@ import (
 type INumberGenerator interface {
 	getNumber() int
 	execute()
-	addObserver(observer Observer)
-	deleteObserver(observer Observer)
 	NotiryObservers()
 }
-type RandomNumberGenerator struct {
+type NumberGenerator struct {
 	Observers []Observer
-	rand      rand.Rand
-	number    int
+}
+
+func (ng *NumberGenerator) addObserver(observer Observer) {
+	ng.Observers = append(ng.Observers, observer)
+}
+
+func (ng *NumberGenerator) deleteObserver(observer Observer) {
+}
+func NewNumberGenerator() *NumberGenerator {
+	return &NumberGenerator{}
+}
+
+type RandomNumberGenerator struct {
+	*NumberGenerator
+	rand   rand.Rand
+	number int
 }
 
 func NewRandomNumberGenerator() RandomNumberGenerator {
 	rand := rand.New(rand.NewSource(time.Now().UnixMicro()))
-	return RandomNumberGenerator{rand: *rand}
+	return RandomNumberGenerator{rand: *rand, NumberGenerator: NewNumberGenerator()}
 }
 
-func (rng *RandomNumberGenerator) addObserver(observer Observer) {
-	rng.Observers = append(rng.Observers, observer)
-}
-
-func (rng *RandomNumberGenerator) deleteObserver(observer Observer) {
-}
 func (rng *RandomNumberGenerator) NotiryObservers() {
 	for _, o := range rng.Observers {
 		o.Update(rng)
